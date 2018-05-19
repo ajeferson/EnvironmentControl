@@ -175,7 +175,7 @@ class ManagerViewModel: TableDataSource, TableDelegate {
     companion object {
 
         private const val READ_TIMEOUT = 10_000L
-        private const val POLL_SLEEP_TIME = 5_000L
+        private const val POLL_SLEEP_TIME = 3_000L
 
     }
 

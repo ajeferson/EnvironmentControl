@@ -1,5 +1,6 @@
 package br.com.environment.control.module.manager.view
 
+import br.com.environment.control.extension.coolAppend
 import br.com.environment.control.module.manager.viewModel.ManagerViewModel
 import br.com.environment.control.view.TableModel
 import io.reactivex.disposables.CompositeDisposable
@@ -17,6 +18,7 @@ class Manager : JFrame("Manager") {
         contentPane
     }
 
+    private var logArea: JTextArea
     private var table: JTable
     private val tableModel: TableModel
 
@@ -24,7 +26,7 @@ class Manager : JFrame("Manager") {
 
     init {
 
-        size = Dimension(400, 400)
+        size = Dimension(600, 400)
         defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 
         /**
@@ -69,6 +71,17 @@ class Manager : JFrame("Manager") {
         container.add(scroll)
 
 
+        /**
+         * Log
+         * */
+
+        logArea = JTextArea()
+        val scrollPane = JScrollPane(logArea)
+        scrollPane.preferredSize = Dimension(250, 400)
+        logArea.isEditable = false
+        container.add(scrollPane, BorderLayout.EAST)
+
+
         // Finish
         isVisible = true
         container.repaint()
@@ -90,7 +103,7 @@ class Manager : JFrame("Manager") {
         disposables.add(
                 viewModel.messages
                         .subscribe {
-                            println(it)
+                            logArea.coolAppend(it)
                         }
         )
 
