@@ -22,8 +22,16 @@ class ManagerViewModel: TableDataSource, TableDelegate {
     val messages: PublishSubject<String> = PublishSubject.create()
     val reload: PublishSubject<Unit> = PublishSubject.create()
 
+    var poll = Runnable {
+        while (true) {
+            Thread.sleep(POLL_SLEEP_TIME)
+            fetchOrCreateList(false)
+        }
+    }
+
     fun setup() {
         setupSpaces()
+        Thread(poll).start()
     }
 
     private fun setupSpaces() {
@@ -33,16 +41,18 @@ class ManagerViewModel: TableDataSource, TableDelegate {
             space = finder.service as JavaSpace
             messages.onNext("Connected")
 //            Cleaner(space).clean()
-            fetchOrCreateList()
+            fetchOrCreateList(true)
         } catch (e: Exception) {
             error.onNext("Could not connect to spaces")
             e.printStackTrace()
         }
     }
 
-    private fun fetchOrCreateList() {
+    private fun fetchOrCreateList(log: Boolean) {
         try {
-            messages.onNext("Fetching list of environments...")
+            if(log) {
+                messages.onNext("Fetching list of environments...")
+            }
             val template = EnvironmentList()
             val entry = space.readIfExists(template, null, READ_TIMEOUT)
 
@@ -58,7 +68,9 @@ class ManagerViewModel: TableDataSource, TableDelegate {
                 reload.onNext(Unit)
             }
         } catch (e: Exception) {
-            error.onNext("Error while fetching the list of environments")
+            if(log) {
+                error.onNext("Error while fetching the list of environments")
+            }
         }
     }
 
@@ -163,6 +175,7 @@ class ManagerViewModel: TableDataSource, TableDelegate {
     companion object {
 
         private const val READ_TIMEOUT = 10_000L
+        private const val POLL_SLEEP_TIME = 5_000L
 
     }
 
