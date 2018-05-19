@@ -1,9 +1,8 @@
 package br.com.environment.control.module.manager.viewModel
 
-import br.com.environment.control.common.Cleaner
 import br.com.environment.control.common.Lookup
 import br.com.environment.control.model.Environment
-import br.com.environment.control.model.TupleEnvironments
+import br.com.environment.control.model.EnvironmentList
 import br.com.environment.control.protocol.TableDataSource
 import br.com.environment.control.protocol.TableDelegate
 import io.reactivex.subjects.PublishSubject
@@ -23,14 +22,6 @@ class ManagerViewModel: TableDataSource, TableDelegate {
     val messages: PublishSubject<String> = PublishSubject.create()
     val reload: PublishSubject<Unit> = PublishSubject.create()
 
-//    private val nextId: Int
-//        get() {
-//            if(environments.isEmpty()) {
-//                return 1
-//            }
-//            return environments.sortedBy { it.id }.last().id + 1
-//        }
-
     fun setup() {
         setupSpaces()
     }
@@ -42,6 +33,7 @@ class ManagerViewModel: TableDataSource, TableDelegate {
             space = finder.service as JavaSpace
             messages.onNext("Connected")
 //            Cleaner(space).clean()
+            fetchOrCreateList()
         } catch (e: Exception) {
             error.onNext("Could not connect to spaces")
             e.printStackTrace()
@@ -51,14 +43,14 @@ class ManagerViewModel: TableDataSource, TableDelegate {
     fun fetchOrCreateList() {
         try {
             messages.onNext("Fetching list of environments...")
-            val template = TupleEnvironments()
+            val template = EnvironmentList()
             val entry = space.readIfExists(template, null, READ_TIMEOUT)
 
             if(entry == null) {
                 template.initEnvironments()
                 space.write(template, null, Lease.FOREVER)
             } else {
-                val envs = (entry as TupleEnvironments)
+                val envs = (entry as EnvironmentList)
                         .environments
                         .sortedBy { it }
                 environments = envs.map { Environment(it) }
@@ -87,11 +79,11 @@ class ManagerViewModel: TableDataSource, TableDelegate {
             space.write(environment, null, Lease.FOREVER)
 
             // Get the last list
-            val template = TupleEnvironments()
-            val tuple = space.take(template, null, READ_TIMEOUT) as TupleEnvironments
+            val template = EnvironmentList()
+            val tuple = space.take(template, null, READ_TIMEOUT) as EnvironmentList
 
             // Update the list
-            val updated = TupleEnvironments()
+            val updated = EnvironmentList()
             updated.environments = tuple.environments
             updated.addEnvironment(environment)
             space.write(updated, null, Lease.FOREVER)
@@ -101,6 +93,48 @@ class ManagerViewModel: TableDataSource, TableDelegate {
             error.onNext("Error creating environment")
             e.printStackTrace()
         }
+    }
+
+    fun removeEnvironment(index: Int) {
+        if(index < 0 || index >= environments.size) {
+            return
+        }
+
+        val tl = EnvironmentList()
+        val te = Environment()
+        te.name = environments[index].name
+
+        val entryList = space.readIfExists(tl, null, READ_TIMEOUT)
+        if(entryList == null || entryList !is EnvironmentList) {
+            return
+        }
+
+        val entryEnv = space.readIfExists(te, null, READ_TIMEOUT)
+        if(entryEnv == null || entryEnv !is Environment) {
+            return
+        }
+
+        if(entryEnv.users > 0) {
+            error.onNext("Can't delete because the environment has users in it")
+            return
+        }
+        if(entryEnv.devices > 0) {
+            error.onNext("Can't delete because the environment has devices in it")
+            return
+        }
+
+        // Update list
+        val list = space.take(tl, null, READ_TIMEOUT) as EnvironmentList
+        val updated = EnvironmentList()
+        updated.environments = list.environments.map { it }.toMutableList()
+        updated.removeEnvironment(environments[index])
+        space.write(updated, null, Lease.FOREVER)
+
+        // Remove environment
+        space.take(te, null, READ_TIMEOUT)
+        environments.removeAt(index)
+
+        reload.onNext(Unit)
     }
 
     /**
@@ -120,8 +154,11 @@ class ManagerViewModel: TableDataSource, TableDelegate {
 
     override fun valueAt(row: Int, column: Int): Any {
         val environment = environments[row]
-        space.write(environment, null, (60 * 1000).toLong())
-        return environment.name
+        return when(column) {
+            0 -> environment.name
+            1 -> environment.users
+            else -> environment.devices
+        }
     }
 
 

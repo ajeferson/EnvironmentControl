@@ -34,6 +34,7 @@ class Manager : JFrame("Manager") {
         val removeBtn = JButton("Remove Environment")
 
         createBtn.addActionListener { didTouchCreateBtn() }
+        removeBtn.addActionListener { didTouchRemoveBtn() }
 
 
         val bottomPanel = JPanel()
@@ -75,7 +76,6 @@ class Manager : JFrame("Manager") {
 
         subscribe()
         viewModel.setup()
-        viewModel.fetchOrCreateList()
 
     }
 
@@ -106,6 +106,10 @@ class Manager : JFrame("Manager") {
     private fun didTouchCreateBtn() {
         val name = JOptionPane.showInputDialog(null, "Type the environment's name:")
         viewModel.createEnvironment(name)
+    }
+
+    private fun didTouchRemoveBtn() {
+        viewModel.removeEnvironment(table.selectedRow)
     }
 
     private fun presentError(message: String) {

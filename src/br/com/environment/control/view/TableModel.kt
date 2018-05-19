@@ -16,7 +16,7 @@ class TableModel(dataSource: TableDataSource, delegate: TableDelegate): Abstract
 
     override fun getColumnName(index: Int) = columnNameAt(index)
 
-    override fun isCellEditable(rowIndex: Int, columnIndex: Int) = true
+    override fun isCellEditable(rowIndex: Int, columnIndex: Int) = false
 
     override fun setValueAt(aValue: Any?, rowIndex: Int, columnIndex: Int) {
 
