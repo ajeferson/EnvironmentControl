@@ -1,7 +1,6 @@
-package br.com.environment.control.module.manager.view
+package br.com.environment.control.module.manager
 
 import br.com.environment.control.extension.coolAppend
-import br.com.environment.control.module.manager.viewModel.ManagerViewModel
 import br.com.environment.control.view.TableModel
 import io.reactivex.disposables.CompositeDisposable
 import java.awt.BorderLayout

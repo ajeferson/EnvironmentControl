@@ -1,4 +1,4 @@
-package br.com.environment.control.module.manager.viewModel
+package br.com.environment.control.module.manager
 
 import br.com.environment.control.common.Lookup
 import br.com.environment.control.model.Environment
