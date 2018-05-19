@@ -88,6 +88,7 @@ public class Lookup implements DiscoveryListener {
                 try {
                     wait();
                 } catch (InterruptedException anIE) {
+                    return null;
                 }
             }
 
