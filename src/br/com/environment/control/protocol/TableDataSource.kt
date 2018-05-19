@@ -6,5 +6,6 @@ interface TableDataSource {
     fun numberOfColumns(): Int
     fun columnNameAt(index: Int): String
     fun valueAt(row: Int, column: Int): Any
+    fun canEditCell(row: Int, column: Int): Boolean
 
 }

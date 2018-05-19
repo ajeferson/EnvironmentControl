@@ -7,16 +7,16 @@ import java.util.List;
 
 public class EnvironmentList implements Entry {
 
-    public List<String> environments;
+    public List<Environment> environments;
 
     public void addEnvironment(Environment env) {
-        environments.add(env.name);
+        environments.add(env);
     }
 
     public void removeEnvironment(Environment env) {
         int index = -1;
         for (int i = 0; i < environments.size() && index < 0; i++) {
-            if(environments.get(i).equals(env.name)) {
+            if(environments.get(i).name.equals(env.name)) {
                 index = i;
             }
         }

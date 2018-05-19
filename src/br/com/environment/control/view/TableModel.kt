@@ -16,18 +16,10 @@ class TableModel(dataSource: TableDataSource, delegate: TableDelegate): Abstract
 
     override fun getColumnName(index: Int) = columnNameAt(index)
 
-    override fun isCellEditable(rowIndex: Int, columnIndex: Int) = false
+    override fun isCellEditable(rowIndex: Int, columnIndex: Int) = canEditCell(rowIndex, columnIndex)
 
     override fun setValueAt(aValue: Any?, rowIndex: Int, columnIndex: Int) {
-
-        val change = aValue as? String ?: return
-
-        if(columnIndex == 0) {
-            didChangeName(rowIndex, change)
-        } else {
-            didChangePhoneNumber(rowIndex, change)
-        }
-
+        didChangeTable(rowIndex, columnIndex, aValue ?: return)
     }
 
     fun reloadData() {

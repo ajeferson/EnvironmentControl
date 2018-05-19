@@ -2,7 +2,6 @@ package br.com.environment.control.protocol
 
 interface TableDelegate {
 
-    fun didChangeName(index: Int, name: String)
-    fun didChangePhoneNumber(index: Int, phoneNumber: String)
+    fun didChangeTable(row: Int, column: Int, value: Any)
 
 }

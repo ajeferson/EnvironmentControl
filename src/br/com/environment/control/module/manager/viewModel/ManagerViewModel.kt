@@ -40,7 +40,7 @@ class ManagerViewModel: TableDataSource, TableDelegate {
         }
     }
 
-    fun fetchOrCreateList() {
+    private fun fetchOrCreateList() {
         try {
             messages.onNext("Fetching list of environments...")
             val template = EnvironmentList()
@@ -52,8 +52,8 @@ class ManagerViewModel: TableDataSource, TableDelegate {
             } else {
                 val envs = (entry as EnvironmentList)
                         .environments
-                        .sortedBy { it }
-                environments = envs.map { Environment(it) }
+                        .sortedBy { it.name }
+                environments = envs.map { Environment(it.name) }
                         .toMutableList()
                 reload.onNext(Unit)
             }
@@ -76,7 +76,7 @@ class ManagerViewModel: TableDataSource, TableDelegate {
             environment.name = name
             environments.add(environment)
             environments.sortBy { it.name }
-            space.write(environment, null, Lease.FOREVER)
+//            space.write(environment, null, Lease.FOREVER)
 
             // Get the last list
             val template = EnvironmentList()
@@ -85,6 +85,7 @@ class ManagerViewModel: TableDataSource, TableDelegate {
             // Update the list
             val updated = EnvironmentList()
             updated.environments = tuple.environments
+                    .map { Environment(it.name) }
             updated.addEnvironment(environment)
             space.write(updated, null, Lease.FOREVER)
 
@@ -99,42 +100,32 @@ class ManagerViewModel: TableDataSource, TableDelegate {
         if(index < 0 || index >= environments.size) {
             return
         }
+        try {
+            val template = EnvironmentList()
+            val entryList = space.readIfExists(template, null, READ_TIMEOUT) as EnvironmentList
 
-        val tl = EnvironmentList()
-        val te = Environment()
-        te.name = environments[index].name
+            val env = entryList.environments.first { it.name == environments[index].name }
+            if (env.users > 0) {
+                error.onNext("Can't delete because the environment has users in it")
+                return
+            }
+            if (env.devices > 0) {
+                error.onNext("Can't delete because the environment has devices in it")
+                return
+            }
 
-        val entryList = space.readIfExists(tl, null, READ_TIMEOUT)
-        if(entryList == null || entryList !is EnvironmentList) {
-            return
+            // Update list
+            val list = space.take(template, null, READ_TIMEOUT) as EnvironmentList
+            val updated = EnvironmentList()
+            updated.environments = list.environments.map { it }.toMutableList()
+            updated.removeEnvironment(environments[index])
+            space.write(updated, null, Lease.FOREVER)
+
+            environments.removeAt(index)
+            reload.onNext(Unit)
+        } catch (e: Exception) {
+            error.onNext("Could not remove environment")
         }
-
-        val entryEnv = space.readIfExists(te, null, READ_TIMEOUT)
-        if(entryEnv == null || entryEnv !is Environment) {
-            return
-        }
-
-        if(entryEnv.users > 0) {
-            error.onNext("Can't delete because the environment has users in it")
-            return
-        }
-        if(entryEnv.devices > 0) {
-            error.onNext("Can't delete because the environment has devices in it")
-            return
-        }
-
-        // Update list
-        val list = space.take(tl, null, READ_TIMEOUT) as EnvironmentList
-        val updated = EnvironmentList()
-        updated.environments = list.environments.map { it }.toMutableList()
-        updated.removeEnvironment(environments[index])
-        space.write(updated, null, Lease.FOREVER)
-
-        // Remove environment
-        space.take(te, null, READ_TIMEOUT)
-        environments.removeAt(index)
-
-        reload.onNext(Unit)
     }
 
     /**
@@ -161,17 +152,12 @@ class ManagerViewModel: TableDataSource, TableDelegate {
         }
     }
 
-
-    /**
-     * Table Delegate
-     * */
-
-    override fun didChangeName(index: Int, name: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun canEditCell(row: Int, column: Int): Boolean {
+        return false
     }
 
-    override fun didChangePhoneNumber(index: Int, phoneNumber: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
+    override fun didChangeTable(row: Int, column: Int, value: Any) {
     }
 
     companion object {
