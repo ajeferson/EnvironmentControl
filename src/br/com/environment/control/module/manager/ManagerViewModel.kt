@@ -1,110 +1,22 @@
 package br.com.environment.control.module.manager
 
-import br.com.environment.control.common.Lookup
-import br.com.environment.control.extension.readIfExists
 import br.com.environment.control.extension.takeIfExists
 import br.com.environment.control.extension.write
 import br.com.environment.control.model.Environment
-import br.com.environment.control.model.Meta
+import br.com.environment.control.module.ViewModel
 import br.com.environment.control.protocol.TableDataSource
 import br.com.environment.control.protocol.TableDelegate
-import io.reactivex.subjects.PublishSubject
-import net.jini.core.entry.Entry
-import net.jini.space.JavaSpace
 
 
-class ManagerViewModel: TableDataSource, TableDelegate {
+class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
 
     private val columns = arrayOf("Environment", "Users", "Devices")
 
-    private var environments = mutableListOf<Environment>()
-
-    private lateinit var space: JavaSpace
-    private lateinit var meta: Meta
-
-    val error: PublishSubject<String> = PublishSubject.create()
-    val messages: PublishSubject<String> = PublishSubject.create()
-    val reload: PublishSubject<Unit> = PublishSubject.create()
-
-    var poll = Runnable {
-        while (true) {
-            Thread.sleep(POLL_SLEEP_TIME)
-            fetchEnvironments(true)
-        }
-    }
-
-    fun setup() {
+    override fun setup() {
         setupSpaces()
         fetchEnvironments(true)
 //        Cleaner(space).clean()
-        Thread(poll).start()
-    }
-
-    private fun setupSpaces() {
-        try {
-            messages.onNext("Connecting...")
-            val finder = Lookup(JavaSpace::class.java)
-            space = finder.service as JavaSpace
-            messages.onNext("Connected")
-        } catch (e: Exception) {
-            error.onNext("Could not connect to spaces")
-            e.printStackTrace()
-        }
-    }
-
-    private fun fetchOrCreateMeta() {
-        try {
-            val template = Meta()
-            val entry = space.readIfExists(template)
-            if(entry == null) {
-                meta = Meta.defaultMeta()
-                space.write(meta)
-            } else {
-                meta = entry as Meta
-            }
-        } catch (e: Exception) {
-        }
-    }
-
-    private fun updateMeta(envId: Int) {
-        try {
-            val update = Meta()
-            space.takeIfExists(update)
-            update.environmentId = envId
-            space.write(update)
-        } catch (e: Exception) {
-        }
-    }
-
-    fun fetchEnvironments(log: Boolean) {
-        try {
-            if(log) {
-                messages.onNext("Fetching list of environments...")
-            }
-
-            fetchOrCreateMeta()
-            environments.clear()
-
-            val max = meta.environmentId
-            var id = 1
-            val template = Environment()
-            var entry: Entry?
-            while(id <= max) {
-                template.id = id
-                entry = space.readIfExists(template)
-                if(entry != null) {
-                    environments.add(entry as Environment)
-                }
-                id += 1
-            }
-
-            environments.sortBy { it.id }
-            reload.onNext(Unit)
-        } catch (e: Exception) {
-            if(log) {
-                error.onNext("Error while fetching the list of environments")
-            }
-        }
+        pollEnvironments()
     }
 
     fun createEnvironment() {
@@ -182,12 +94,6 @@ class ManagerViewModel: TableDataSource, TableDelegate {
 
 
     override fun didChangeTable(row: Int, column: Int, value: Any) {
-    }
-
-    companion object {
-
-        private const val POLL_SLEEP_TIME = 3_000L
-
     }
 
 }

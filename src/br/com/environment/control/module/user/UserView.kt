@@ -11,130 +11,119 @@ import javax.swing.*
 
 class UserView : JFrame("User") {
 
-    private val disposables = CompositeDisposable()
-
-    private val container: Container by lazy {
-        contentPane
-    }
-
-    private var logArea: JTextArea
-    private var table: JTable
-    private val tableModel: TableModel
-
-    private val viewModel: UserViewModel
-
-    init {
-
-        val name = promptForName()
-        viewModel = UserViewModel(name)
-
-        size = Dimension(600, 400)
-        defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-
-        /**
-         * Buttons
-         * */
-        val enterBtn = JButton("Enter Environment")
-        val leaveBtn = JButton("Leave Environment")
-
-        enterBtn.addActionListener { didTouchEnterBtn() }
-        leaveBtn.addActionListener { didTouchLeaveBtn() }
-
-
-        val bottomPanel = JPanel()
-        bottomPanel.layout = GridLayout(1, 2)
-        bottomPanel.add(enterBtn)
-        bottomPanel.add(leaveBtn)
-
-        container.add(bottomPanel, BorderLayout.SOUTH)
-
-
-        /**
-         * Table
-         * */
-        tableModel = TableModel(viewModel, viewModel)
-        table = JTable(tableModel)
-        val scroll = JScrollPane(table)
-
-        table.fillsViewportHeight = true
-
-        // Columns Widths
-        val namesWidth = (0.6 * WIDTH).toInt()
-        table.columnModel.getColumn(0).preferredWidth = namesWidth
-        table.columnModel.getColumn(1).preferredWidth = WIDTH - namesWidth
-
-        // Allow single selection
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-
-        // Can select only an entire row
-        table.rowSelectionAllowed = true
-        table.columnSelectionAllowed = false
-
-        container.add(scroll)
-
-
-        /**
-         * Log
-         * */
-
-        logArea = JTextArea()
-        val scrollPane = JScrollPane(logArea)
-        scrollPane.preferredSize = Dimension(250, 400)
-        logArea.isEditable = false
-        container.add(scrollPane, BorderLayout.EAST)
-
-
-        // Finish
-        isVisible = true
-        container.repaint()
-        requestFocus()
-
-        subscribe()
-
-    }
-
-    private fun subscribe() {
-        disposables.add(
-                viewModel.error
-                        .subscribe {
-                            presentError(it)
-                        }
-        )
-
-        disposables.add(
-                viewModel.messages
-                        .subscribe {
-                            logArea.coolAppend(it)
-                        }
-        )
-
-        disposables.add(
-                viewModel.reload
-                        .subscribe {
-                            tableModel.reloadData()
-                        }
-        )
-
-    }
-
-    private fun didTouchEnterBtn() {
-    }
-
-    private fun didTouchLeaveBtn() {
-    }
-
-    private fun presentError(message: String) {
-        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE)
-    }
-
-    private fun promptForName(): String {
-        val name = JOptionPane.showInputDialog(null, "Type your username")
-        if(name == null || name.isEmpty()) {
-            presentError("You should have a username. Exiting.")
-            System.exit(1)
-        }
-        return name
-    }
+//    private val disposables = CompositeDisposable()
+//
+//    private val container: Container by lazy {
+//        contentPane
+//    }
+//
+//    private var logArea: JTextArea
+//    private var table: JTable
+//    private val tableModel: TableModel
+//
+//    private val viewModel = UserViewModel()
+//
+//    init {
+//
+//        size = Dimension(600, 400)
+//        defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+//
+//        /**
+//         * Buttons
+//         * */
+//        val enterBtn = JButton("Enter Environment")
+//        val leaveBtn = JButton("Leave Environment")
+//
+//        enterBtn.addActionListener { didTouchEnterBtn() }
+//        leaveBtn.addActionListener { didTouchLeaveBtn() }
+//
+//
+//        val bottomPanel = JPanel()
+//        bottomPanel.layout = GridLayout(1, 2)
+//        bottomPanel.add(enterBtn)
+//        bottomPanel.add(leaveBtn)
+//
+//        container.add(bottomPanel, BorderLayout.SOUTH)
+//
+//
+//        /**
+//         * Table
+//         * */
+//        tableModel = TableModel(viewModel, viewModel)
+//        table = JTable(tableModel)
+//        val scroll = JScrollPane(table)
+//
+//        table.fillsViewportHeight = true
+//
+//        // Columns Widths
+//        val namesWidth = (0.6 * WIDTH).toInt()
+//        table.columnModel.getColumn(0).preferredWidth = namesWidth
+//        table.columnModel.getColumn(1).preferredWidth = WIDTH - namesWidth
+//
+//        // Allow single selection
+//        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+//
+//        // Can select only an entire row
+//        table.rowSelectionAllowed = true
+//        table.columnSelectionAllowed = false
+//
+//        container.add(scroll)
+//
+//
+//        /**
+//         * Log
+//         * */
+//
+//        logArea = JTextArea()
+//        val scrollPane = JScrollPane(logArea)
+//        scrollPane.preferredSize = Dimension(250, 400)
+//        logArea.isEditable = false
+//        container.add(scrollPane, BorderLayout.EAST)
+//
+//
+//        // Finish
+//        isVisible = true
+//        container.repaint()
+//        requestFocus()
+//
+//        subscribe()
+//        viewModel.setup()
+//
+//    }
+//
+//    private fun subscribe() {
+//        disposables.add(
+//                viewModel.error
+//                        .subscribe {
+//                            presentError(it)
+//                        }
+//        )
+//
+//        disposables.add(
+//                viewModel.messages
+//                        .subscribe {
+//                            logArea.coolAppend(it)
+//                        }
+//        )
+//
+//        disposables.add(
+//                viewModel.reload
+//                        .subscribe {
+//                            tableModel.reloadData()
+//                        }
+//        )
+//
+//    }
+//
+//    private fun didTouchEnterBtn() {
+//    }
+//
+//    private fun didTouchLeaveBtn() {
+//    }
+//
+//    private fun presentError(message: String) {
+//        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE)
+//    }
 
 
 }
