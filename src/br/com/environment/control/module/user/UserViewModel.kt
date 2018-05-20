@@ -80,7 +80,9 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         reload.onNext(Unit)
         title.onNext("${user.name} (${environments[index].name})")
 
+        sendMessage("${user.name} entered ${environments[index].name}", true)
         pollMessages(true)
+
     }
 
     fun leaveEnvironment() {
@@ -110,17 +112,23 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         title.onNext(user.name)
 
         pollMessages(false)
+        sendMessage("${user.name} left env$envId", true, envId)
+
     }
 
-    fun sendMessage(text: String) {
+    fun sendMessage(text: String, raw: Boolean = false, envId: Int? = null) {
         try {
             // Create base message
             val message = Message()
-            message.setContent(user, text)
+            if(raw) {
+                message.content = text
+            } else {
+                message.setContent(user, text)
+            }
             message.senderId = user.id
 
             // Send the message
-            val templateEnv = Environment(user.environmentId)
+            val templateEnv = Environment(envId ?: user.environmentId)
             val env = space.readIfExists(templateEnv) as Environment
             env.users.forEach {
                 message.receiverId = it

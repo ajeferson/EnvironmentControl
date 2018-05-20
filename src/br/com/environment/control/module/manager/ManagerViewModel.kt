@@ -38,6 +38,8 @@ class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
             environments.add(env)
             environments.sortBy { it.id }
             reload.onNext(Unit)
+
+            messages.onNext("Created ${env.name}")
         } catch (e: Exception) {
         }
     }
@@ -64,6 +66,8 @@ class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
 
             environments.removeAt(index)
             reload.onNext(Unit)
+
+            messages.onNext("Removed ${env.name}")
         } catch (e: Exception) {
             error.onNext("Could not remove environment")
         }

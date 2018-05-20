@@ -92,7 +92,7 @@ abstract class ViewModel {
     protected fun fetchEnvironments(log: Boolean) {
         try {
             if(log) {
-                messages.onNext("Fetching list of environments...")
+                messages.onNext("Fetching environments...")
             }
 
             fetchOrCreateMeta()
