@@ -25,6 +25,7 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
     var status: BehaviorSubject<UserStatus> = BehaviorSubject.createDefault(UserStatus.OUTSIDE)
 
     var shouldPollMessages = true
+    var shouldPollUsers = true
 
     override fun setup() {
         setupSpaces()
@@ -82,6 +83,7 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
 
         sendMessage("${user.name} entered ${environments[index].name}", true)
         pollMessages(true)
+        pollUsers(true)
 
     }
 
@@ -112,6 +114,7 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         title.onNext(user.name)
 
         pollMessages(false)
+        pollUsers(false)
         sendMessage("${user.name} left env$envId", true, envId)
 
     }
@@ -168,6 +171,32 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
                     messages.onNext(message.content)
                 }
             } while (entry != null)
+        } catch(e: Exception) {
+        }
+    }
+
+    private fun pollUsers(shouldPoll: Boolean) {
+        if(!shouldPoll) {
+            shouldPollUsers = false
+            return
+        }
+        shouldPollUsers = true
+        val poll = Runnable {
+            while(shouldPollUsers) {
+                fetchUsers()
+                Thread.sleep(POLL_SLEEP_TIME)
+            }
+        }
+        Thread(poll).start()
+    }
+
+    private fun fetchUsers() {
+        try {
+            val template = Environment(user.environmentId)
+            val entry = space.readIfExists(template) as Environment
+            users = entry.users.map { User(it).also { it.environmentId = user.environmentId } }
+                    .sortedBy { it.id }
+            reload.onNext(Unit)
         } catch(e: Exception) {
         }
     }
