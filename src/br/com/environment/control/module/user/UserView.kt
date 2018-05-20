@@ -1,5 +1,6 @@
 package br.com.environment.control.module.user
 
+import br.com.environment.control.extension.clear
 import br.com.environment.control.extension.coolAppend
 import br.com.environment.control.view.TableModel
 import io.reactivex.disposables.CompositeDisposable
@@ -7,9 +8,11 @@ import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.GridLayout
+import java.awt.event.KeyEvent
+import java.awt.event.KeyListener
 import javax.swing.*
 
-class UserView : JFrame("User") {
+class UserView : JFrame("User"), KeyListener {
 
     private val disposables = CompositeDisposable()
 
@@ -22,6 +25,8 @@ class UserView : JFrame("User") {
     private val tableModel: TableModel
     private val enterBtn: JButton
     private val leaveBtn: JButton
+    private val chatTextField: JTextField
+    private val sendBtn: JButton
 
     private val viewModel = UserViewModel()
 
@@ -78,9 +83,24 @@ class UserView : JFrame("User") {
 
         logArea = JTextArea()
         val scrollPane = JScrollPane(logArea)
-        scrollPane.preferredSize = Dimension(250, 400)
         logArea.isEditable = false
-        container.add(scrollPane, BorderLayout.EAST)
+
+
+        chatTextField = JTextField()
+        chatTextField.addKeyListener(this)
+
+        sendBtn = JButton("Send")
+        sendBtn.addActionListener { didTouchSendBtn() }
+
+        val chatPanel = JPanel(BorderLayout())
+        chatPanel.add(chatTextField)
+        chatPanel.add(sendBtn, BorderLayout.EAST)
+
+        val sidePanel = JPanel(BorderLayout())
+        sidePanel.add(scrollPane)
+        sidePanel.add(chatPanel, BorderLayout.SOUTH)
+        sidePanel.preferredSize = Dimension(300, 0)
+        container.add(sidePanel, BorderLayout.EAST)
 
 
         // Finish
@@ -139,6 +159,15 @@ class UserView : JFrame("User") {
         viewModel.leaveEnvironment()
     }
 
+    private fun didTouchSendBtn() {
+        sendChatMessage()
+    }
+
+    private fun sendChatMessage() {
+        viewModel.sendMessage(chatTextField.text)
+        chatTextField.clear()
+    }
+
     private fun presentError(message: String) {
         JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE)
     }
@@ -146,6 +175,36 @@ class UserView : JFrame("User") {
     private fun updateView(status: UserViewModel.UserStatus) {
         enterBtn.isEnabled = status.isOutside
         leaveBtn.isEnabled = status.isInside
+        sendBtn.isEnabled = status.isInside
+        chatTextField.isEnabled = status.isInside
+        chatTextField.clear()
+    }
+
+
+    /**
+     * KeyListener
+     * */
+
+    override fun keyTyped(e: KeyEvent?) {
+    }
+
+    override fun keyPressed(e: KeyEvent?) {
+    }
+
+    override fun keyReleased(e: KeyEvent?) {
+        if(e == null) {
+            return
+        }
+        if(e.keyCode != ENTER_KEY_CODE) {
+            return
+        }
+        sendChatMessage()
+    }
+
+    companion object {
+
+        private const val ENTER_KEY_CODE = 10
+
     }
 
 

@@ -4,12 +4,14 @@ import br.com.environment.control.extension.readIfExists
 import br.com.environment.control.extension.takeIfExists
 import br.com.environment.control.extension.write
 import br.com.environment.control.model.Environment
+import br.com.environment.control.model.Message
 import br.com.environment.control.model.User
 import br.com.environment.control.module.ViewModel
 import br.com.environment.control.protocol.TableDataSource
 import br.com.environment.control.protocol.TableDelegate
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
+import net.jini.core.entry.Entry
 
 class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
 
@@ -21,6 +23,8 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
 
     var title: PublishSubject<String> = PublishSubject.create()
     var status: BehaviorSubject<UserStatus> = BehaviorSubject.createDefault(UserStatus.OUTSIDE)
+
+    var shouldPollMessages = true
 
     override fun setup() {
         setupSpaces()
@@ -75,6 +79,8 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         status.onNext(UserStatus.INSIDE)
         reload.onNext(Unit)
         title.onNext("${user.name} (${environments[index].name})")
+
+        pollMessages(true)
     }
 
     fun leaveEnvironment() {
@@ -89,7 +95,7 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
 
             // Update environment tuple
             val template = Environment(envId)
-            val entry = space.takeIfExists(template) as Environment
+            val entry = space.takeIfExists(template)  as Environment
             val update = Environment(entry.id)
             update.users = entry.users.map { it }
             update.removeUser(user)
@@ -102,6 +108,60 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         status.onNext(UserStatus.OUTSIDE)
         reload.onNext(Unit)
         title.onNext(user.name)
+
+        pollMessages(false)
+    }
+
+    fun sendMessage(text: String) {
+        try {
+            // Create base message
+            val message = Message()
+            message.setContent(user, text)
+            message.senderId = user.id
+
+            // Send the message
+            val templateEnv = Environment(user.environmentId)
+            val env = space.readIfExists(templateEnv) as Environment
+            env.users.forEach {
+                message.receiverId = it
+                space.write(message)
+            }
+
+        } catch(e: Exception) {
+            error.onNext("Could not send message")
+        }
+    }
+
+    private fun pollMessages(shouldPoll: Boolean) {
+        if(!shouldPoll) {
+            shouldPollMessages = false
+            return
+        }
+        shouldPollMessages = true
+        val poll = Runnable {
+            while(shouldPollMessages) {
+                fetchMessages()
+                Thread.sleep(POLL_SLEEP_TIME)
+            }
+        }
+        Thread(poll).start()
+    }
+
+    private fun fetchMessages() {
+        var entry: Entry?
+        val template = Message()
+        template.receiverId = user.id
+
+        try {
+            do {
+                entry = space.takeIfExists(template)
+                if(entry != null) {
+                    val message = entry as Message
+                    messages.onNext(message.content)
+                }
+            } while (entry != null)
+        } catch(e: Exception) {
+        }
     }
 
     /**
@@ -161,6 +221,12 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
 
         val isInside: Boolean get() = this == INSIDE
         val isOutside: Boolean get() = this == OUTSIDE
+    }
+
+    companion object {
+
+        private const val POLL_SLEEP_TIME = 500L
+
     }
 
 }
