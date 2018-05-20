@@ -1,4 +1,4 @@
-package br.com.environment.control.module.manager
+package br.com.environment.control.module.user
 
 import br.com.environment.control.common.Lookup
 import br.com.environment.control.extension.readIfExists
@@ -12,8 +12,7 @@ import io.reactivex.subjects.PublishSubject
 import net.jini.core.entry.Entry
 import net.jini.space.JavaSpace
 
-
-class ManagerViewModel: TableDataSource, TableDelegate {
+class UserViewModel(private val name: String): TableDataSource, TableDelegate {
 
     private val columns = arrayOf("Environment", "Users", "Devices")
 

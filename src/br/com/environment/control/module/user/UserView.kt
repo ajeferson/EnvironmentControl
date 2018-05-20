@@ -1,4 +1,4 @@
-package br.com.environment.control.module.manager
+package br.com.environment.control.module.user
 
 import br.com.environment.control.extension.coolAppend
 import br.com.environment.control.view.TableModel
@@ -9,7 +9,7 @@ import java.awt.Dimension
 import java.awt.GridLayout
 import javax.swing.*
 
-class Manager : JFrame("Manager") {
+class UserView : JFrame("User") {
 
     private val disposables = CompositeDisposable()
 
@@ -21,9 +21,12 @@ class Manager : JFrame("Manager") {
     private var table: JTable
     private val tableModel: TableModel
 
-    private val viewModel = ManagerViewModel()
+    private val viewModel: UserViewModel
 
     init {
+
+        val name = promptForName()
+        viewModel = UserViewModel(name)
 
         size = Dimension(600, 400)
         defaultCloseOperation = JFrame.EXIT_ON_CLOSE
@@ -31,17 +34,17 @@ class Manager : JFrame("Manager") {
         /**
          * Buttons
          * */
-        val createBtn = JButton("Create Environment")
-        val removeBtn = JButton("Remove Environment")
+        val enterBtn = JButton("Enter Environment")
+        val leaveBtn = JButton("Leave Environment")
 
-        createBtn.addActionListener { didTouchCreateBtn() }
-        removeBtn.addActionListener { didTouchRemoveBtn() }
+        enterBtn.addActionListener { didTouchEnterBtn() }
+        leaveBtn.addActionListener { didTouchLeaveBtn() }
 
 
         val bottomPanel = JPanel()
         bottomPanel.layout = GridLayout(1, 2)
-        bottomPanel.add(createBtn)
-        bottomPanel.add(removeBtn)
+        bottomPanel.add(enterBtn)
+        bottomPanel.add(leaveBtn)
 
         container.add(bottomPanel, BorderLayout.SOUTH)
 
@@ -87,16 +90,15 @@ class Manager : JFrame("Manager") {
         requestFocus()
 
         subscribe()
-        viewModel.setup()
 
     }
 
     private fun subscribe() {
         disposables.add(
                 viewModel.error
-                .subscribe {
-                    presentError(it)
-                }
+                        .subscribe {
+                            presentError(it)
+                        }
         )
 
         disposables.add(
@@ -115,21 +117,28 @@ class Manager : JFrame("Manager") {
 
     }
 
-    private fun didTouchCreateBtn() {
-        viewModel.createEnvironment()
+    private fun didTouchEnterBtn() {
     }
 
-    private fun didTouchRemoveBtn() {
-        viewModel.removeEnvironment(table.selectedRow)
+    private fun didTouchLeaveBtn() {
     }
 
     private fun presentError(message: String) {
         JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE)
     }
 
+    private fun promptForName(): String {
+        val name = JOptionPane.showInputDialog(null, "Type your username")
+        if(name == null || name.isEmpty()) {
+            presentError("You should have a username. Exiting.")
+            System.exit(1)
+        }
+        return name
+    }
+
 
 }
 
 fun main(args: Array<String>) {
-    Manager()
+    UserView()
 }
