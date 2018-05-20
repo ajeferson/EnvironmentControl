@@ -14,10 +14,9 @@ import io.reactivex.subjects.PublishSubject
 class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
 
     private val outColumns = arrayOf("Environment", "Users", "Devices")
-    private val insideColumns = arrayOf("Users on ")
+    private val insideColumns = arrayOf("Users currently on the environment ")
 
     private lateinit var user: User
-    private lateinit var currentEnvironment: Environment
     private var users = listOf<User>()
 
     var title: PublishSubject<String> = PublishSubject.create()
@@ -65,18 +64,39 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
             update.users = entry.users + 1
             update.devices = entry.devices
             space.write(update)
-            currentEnvironment = update
         } catch(e: Exception) {
-            val action = if(envId != null) "enter" else "leave"
-            error.onNext("Could not $action environment")
+            error.onNext("Could not enter environment")
         }
 
         status.onNext(UserStatus.INSIDE)
         reload.onNext(Unit)
-        title.onNext("${user.name} (${currentEnvironment.name})")
+        title.onNext("${user.name} (${environments[index].name})")
     }
 
     fun leaveEnvironment() {
+        val envId = user.environmentId
+        try {
+            // Update user tuple
+            space.takeIfExists(User(user.id)) // Remove from space
+            val updateUser = User(user.id)
+            updateUser.environmentId = null
+            space.write(updateUser) // Write back
+            user = updateUser
+
+            // Update environment tuple
+            val template = Environment(envId)
+            val entry = space.takeIfExists(template) as Environment
+            val update = Environment(entry.id)
+            update.users = entry.users - 1
+            update.devices = entry.devices
+            space.write(update)
+        } catch(e: Exception) {
+            error.onNext("Could not leave environment")
+        }
+
+        status.onNext(UserStatus.OUTSIDE)
+        reload.onNext(Unit)
+        title.onNext(user.name)
     }
 
     /**
@@ -96,7 +116,7 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
     override fun columnNameAt(index: Int): String {
         return when(status.value) {
             UserStatus.OUTSIDE -> outColumns[index]
-            else -> "${insideColumns[index]} ${currentEnvironment.name}"
+            else -> insideColumns[index]
         }
     }
 
