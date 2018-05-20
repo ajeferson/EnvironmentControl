@@ -26,6 +26,8 @@ class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
 
             val id = meta.environmentId + 1
             val env = Environment(id)
+            env.users = 0
+            env.devices = 0
             space.write(env)
 
             updateMeta(id)

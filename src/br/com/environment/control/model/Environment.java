@@ -5,8 +5,8 @@ import net.jini.core.entry.Entry;
 public class Environment implements Entry {
 
     public Integer id;
-    public Integer users = 0;
-    public Integer devices = 0;
+    public Integer users;
+    public Integer devices;
 
     public Environment() {
     }

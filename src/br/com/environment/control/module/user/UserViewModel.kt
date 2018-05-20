@@ -1,6 +1,9 @@
 package br.com.environment.control.module.user
 
+import br.com.environment.control.extension.readIfExists
+import br.com.environment.control.extension.takeIfExists
 import br.com.environment.control.extension.write
+import br.com.environment.control.model.Environment
 import br.com.environment.control.model.User
 import br.com.environment.control.module.ViewModel
 import br.com.environment.control.protocol.TableDataSource
@@ -10,9 +13,12 @@ import io.reactivex.subjects.PublishSubject
 
 class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
 
-    private val columns = arrayOf("Environment", "Users", "Devices")
+    private val outColumns = arrayOf("Environment", "Users", "Devices")
+    private val insideColumns = arrayOf("Users on ")
 
     private lateinit var user: User
+    private lateinit var currentEnvironment: Environment
+    private var users = listOf<User>()
 
     var title: PublishSubject<String> = PublishSubject.create()
     var status: BehaviorSubject<UserStatus> = BehaviorSubject.createDefault(UserStatus.OUTSIDE)
@@ -21,7 +27,7 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         setupSpaces()
         createUser()
         fetchEnvironments(true)
-        pollEnvironments()
+//        pollEnvironments()
     }
 
     private fun createUser() {
@@ -38,29 +44,36 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         }
     }
 
-    private fun updateEnvironment(envId: Int?) {
-        try {
-            val update = User(user.id)
-            update.environmentId = envId
-            space.write(update)
-            user = update
-            reload.onNext(Unit)
-        } catch(e: Exception) {
-            val action = if(envId != null) "enter" else "leave"
-            error.onNext("Could not $action environment")
-        }
-    }
-
     fun enterEnvironment(index: Int) {
         if(index < 0) {
             return
         }
 
-        val env = environments[index]
-        updateEnvironment(env.id)
+        val envId = environments[index].id
+        try {
+            // Update user tuple
+            space.takeIfExists(User(user.id)) // Remove from space
+            val updateUser = User(user.id)
+            updateUser.environmentId = envId
+            space.write(updateUser) // Write back
+            user = updateUser
+
+            // Update environment tuple
+            val template = Environment(envId)
+            val entry = space.takeIfExists(template) as Environment
+            val update = Environment(entry.id)
+            update.users = entry.users + 1
+            update.devices = entry.devices
+            space.write(update)
+            currentEnvironment = update
+        } catch(e: Exception) {
+            val action = if(envId != null) "enter" else "leave"
+            error.onNext("Could not $action environment")
+        }
 
         status.onNext(UserStatus.INSIDE)
-        title.onNext("${user.name} (${env.name})")
+        reload.onNext(Unit)
+        title.onNext("${user.name} (${currentEnvironment.name})")
     }
 
     fun leaveEnvironment() {
@@ -74,11 +87,17 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
     }
 
     override fun numberOfColumns(): Int {
-        return columns.size
+        return when(status.value) {
+            UserStatus.OUTSIDE -> outColumns.size
+            else -> insideColumns.size
+        }
     }
 
     override fun columnNameAt(index: Int): String {
-        return columns[index]
+        return when(status.value) {
+            UserStatus.OUTSIDE -> outColumns[index]
+            else -> "${insideColumns[index]} ${currentEnvironment.name}"
+        }
     }
 
     override fun valueAt(row: Int, column: Int): Any {

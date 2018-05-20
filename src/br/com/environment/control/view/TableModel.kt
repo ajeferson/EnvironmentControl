@@ -23,7 +23,10 @@ class TableModel(dataSource: TableDataSource, delegate: TableDelegate): Abstract
     }
 
     fun reloadData() {
-        SwingUtilities.invokeLater { fireTableDataChanged() }
+        SwingUtilities.invokeLater {
+            fireTableStructureChanged()
+            fireTableDataChanged()
+        }
     }
 
 }
