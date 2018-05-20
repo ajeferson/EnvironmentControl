@@ -66,11 +66,19 @@ abstract class ViewModel {
         }
     }
 
-    protected fun updateMeta(envId: Int) {
+    protected fun updateMeta(envId: Int? = null, userId: Int? = null) {
         try {
+            val template = Meta()
+            val entry = space.takeIfExists(template) as Meta
             val update = Meta()
-            space.takeIfExists(update)
-            update.environmentId = envId
+            update.environmentId = entry.environmentId
+            update.userId = entry.userId
+            if(envId != null) {
+                update.environmentId = envId
+            }
+            if(userId != null) {
+                update.userId = userId
+            }
             space.write(update)
         } catch (e: Exception) {
         }

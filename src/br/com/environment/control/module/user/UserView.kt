@@ -20,6 +20,8 @@ class UserView : JFrame("User") {
     private var logArea: JTextArea
     private var table: JTable
     private val tableModel: TableModel
+    private val enterBtn: JButton
+    private val leaveBtn: JButton
 
     private val viewModel = UserViewModel()
 
@@ -31,8 +33,8 @@ class UserView : JFrame("User") {
         /**
          * Buttons
          * */
-        val enterBtn = JButton("Enter Environment")
-        val leaveBtn = JButton("Leave Environment")
+        enterBtn = JButton("Enter Environment")
+        leaveBtn = JButton("Leave Environment")
 
         enterBtn.addActionListener { didTouchEnterBtn() }
         leaveBtn.addActionListener { didTouchLeaveBtn() }
@@ -113,16 +115,37 @@ class UserView : JFrame("User") {
                         }
         )
 
+        disposables.add(
+                viewModel.title
+                        .subscribe {
+                            title = it
+                        }
+        )
+
+        disposables.add(
+                viewModel.status
+                        .subscribe {
+                            updateView(it)
+                        }
+        )
+
     }
 
     private fun didTouchEnterBtn() {
+        viewModel.enterEnvironment(table.selectedRow)
     }
 
     private fun didTouchLeaveBtn() {
+        viewModel.leaveEnvironment()
     }
 
     private fun presentError(message: String) {
         JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE)
+    }
+
+    private fun updateView(status: UserViewModel.UserStatus) {
+        enterBtn.isEnabled = status.isOutside
+        leaveBtn.isEnabled = status.isInside
     }
 
 
