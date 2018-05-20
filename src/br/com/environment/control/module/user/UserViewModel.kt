@@ -1,5 +1,6 @@
 package br.com.environment.control.module.user
 
+import br.com.environment.control.extension.readIfExists
 import br.com.environment.control.extension.takeIfExists
 import br.com.environment.control.extension.write
 import br.com.environment.control.model.Environment
@@ -63,6 +64,10 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
             update.users.add(user.id)
             update.devices = entry.devices.map { it }
             space.write(update)
+
+            users = entry.users.map { User(it).also { it.environmentId = user.environmentId } }
+                    .sortedBy { it.id }
+
         } catch(e: Exception) {
             error.onNext("Could not enter environment")
         }
@@ -99,19 +104,15 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         title.onNext(user.name)
     }
 
-    fun fetchUsers() {
-        try {
-            val template = User()
-            template.environmentId = user.environmentId
-        } catch(e: Exception) {
-        }
-    }
-
     /**
      * Table DataSource
      * */
     override fun numberOfRows(): Int {
-        return environments.size
+        return if(status.value == UserStatus.OUTSIDE) {
+            environments.size
+        } else {
+            users.size
+        }
     }
 
     override fun numberOfColumns(): Int {
@@ -129,11 +130,15 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
     }
 
     override fun valueAt(row: Int, column: Int): Any {
-        val environment = environments[row]
-        return when(column) {
-            0 -> environment.name
-            1 -> environment.users.size
-            else -> environment.devices.size
+        return if(status.value == UserStatus.OUTSIDE) {
+            val environment = environments[row]
+            when(column) {
+                0 -> environment.name
+                1 -> environment.users.size
+                else -> environment.devices.size
+            }
+        } else {
+            users[row].name
         }
     }
 
