@@ -36,18 +36,21 @@ class Manager : JFrame("Manager") {
         val removeBtn = JButton("Remove Environment")
         val showUsersBtn = JButton("Show Users")
         val showDevicesBtn = JButton("Show Devices")
+        val refreshBtn = JButton("Refresh List")
 
         createBtn.addActionListener { didTouchCreateBtn() }
         removeBtn.addActionListener { didTouchRemoveBtn() }
         showUsersBtn.addActionListener { didTouchShowUsersBtn() }
+        refreshBtn.addActionListener { didTouchRefreshBtn() }
 
 
         val bottomPanel = JPanel()
-        bottomPanel.layout = GridLayout(2, 2)
+        bottomPanel.layout = GridLayout(3, 2)
         bottomPanel.add(createBtn)
         bottomPanel.add(removeBtn)
         bottomPanel.add(showUsersBtn)
         bottomPanel.add(showDevicesBtn)
+        bottomPanel.add(refreshBtn)
 
         container.add(bottomPanel, BorderLayout.SOUTH)
 
@@ -116,6 +119,7 @@ class Manager : JFrame("Manager") {
                 viewModel.reload
                         .subscribe {
                             tableModel.reloadData()
+
                         }
         )
 
@@ -138,6 +142,10 @@ class Manager : JFrame("Manager") {
 
     private fun didTouchShowUsersBtn() {
         viewModel.showUsersOfEnvironment(table.selectedRow)
+    }
+
+    private fun didTouchRefreshBtn() {
+        viewModel.refresh()
     }
 
     private fun presentError(message: String) {

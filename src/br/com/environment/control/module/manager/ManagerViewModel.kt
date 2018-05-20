@@ -85,6 +85,10 @@ class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
         selectedEnvUsers.onNext(environments[index].id)
     }
 
+    fun refresh() {
+        fetchEnvironments(true)
+    }
+
     /**
      * Table DataSource
      * */
