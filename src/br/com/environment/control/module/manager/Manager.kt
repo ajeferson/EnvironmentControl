@@ -1,6 +1,7 @@
 package br.com.environment.control.module.manager
 
 import br.com.environment.control.extension.coolAppend
+import br.com.environment.control.module.userList.UserList
 import br.com.environment.control.view.TableModel
 import io.reactivex.disposables.CompositeDisposable
 import java.awt.BorderLayout
@@ -33,15 +34,20 @@ class Manager : JFrame("Manager") {
          * */
         val createBtn = JButton("Create Environment")
         val removeBtn = JButton("Remove Environment")
+        val showUsersBtn = JButton("Show Users")
+        val showDevicesBtn = JButton("Show Devices")
 
         createBtn.addActionListener { didTouchCreateBtn() }
         removeBtn.addActionListener { didTouchRemoveBtn() }
+        showUsersBtn.addActionListener { didTouchShowUsersBtn() }
 
 
         val bottomPanel = JPanel()
-        bottomPanel.layout = GridLayout(1, 2)
+        bottomPanel.layout = GridLayout(2, 2)
         bottomPanel.add(createBtn)
         bottomPanel.add(removeBtn)
+        bottomPanel.add(showUsersBtn)
+        bottomPanel.add(showDevicesBtn)
 
         container.add(bottomPanel, BorderLayout.SOUTH)
 
@@ -113,6 +119,13 @@ class Manager : JFrame("Manager") {
                         }
         )
 
+        disposables.add(
+                viewModel.selectedEnvUsers
+                        .subscribe {
+                            UserList(viewModel.space, it)
+                        }
+        )
+
     }
 
     private fun didTouchCreateBtn() {
@@ -121,6 +134,10 @@ class Manager : JFrame("Manager") {
 
     private fun didTouchRemoveBtn() {
         viewModel.removeEnvironment(table.selectedRow)
+    }
+
+    private fun didTouchShowUsersBtn() {
+        viewModel.showUsersOfEnvironment(table.selectedRow)
     }
 
     private fun presentError(message: String) {

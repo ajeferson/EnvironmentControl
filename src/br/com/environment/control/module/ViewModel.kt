@@ -14,7 +14,7 @@ abstract class ViewModel {
 
     protected lateinit var meta: Meta
 
-    protected lateinit var space: JavaSpace
+    lateinit var space: JavaSpace
 
     val error: PublishSubject<String> = PublishSubject.create()
     val messages: PublishSubject<String> = PublishSubject.create()

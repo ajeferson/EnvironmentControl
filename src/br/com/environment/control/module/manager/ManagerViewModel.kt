@@ -6,17 +6,20 @@ import br.com.environment.control.model.Environment
 import br.com.environment.control.module.ViewModel
 import br.com.environment.control.protocol.TableDataSource
 import br.com.environment.control.protocol.TableDelegate
+import io.reactivex.subjects.PublishSubject
 
 
 class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
 
     private val columns = arrayOf("Environment", "Users", "Devices")
 
+    val selectedEnvUsers: PublishSubject<Int> = PublishSubject.create()
+
     override fun setup() {
         setupSpaces()
         fetchEnvironments(true)
 //        Cleaner(space).clean()
-        pollEnvironments()
+//        pollEnvironments()
     }
 
     fun createEnvironment() {
@@ -64,6 +67,18 @@ class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
         } catch (e: Exception) {
             error.onNext("Could not remove environment")
         }
+    }
+
+    fun showUsersOfEnvironment(index: Int) {
+        fetchEnvironments(false)
+        if(index < 0 || index >= environments.size) {
+            return
+        }
+        if(environments[index].users.isEmpty()) {
+            error.onNext("There are no users in this environment")
+            return
+        }
+        selectedEnvUsers.onNext(environments[index].id)
     }
 
     /**
