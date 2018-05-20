@@ -26,8 +26,8 @@ class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
 
             val id = meta.environmentId + 1
             val env = Environment(id)
-            env.users = 0
-            env.devices = 0
+            env.users = listOf()
+            env.devices = listOf()
             space.write(env)
 
             updateMeta(id)
@@ -46,11 +46,11 @@ class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
         try {
             fetchEnvironments(false)
             val env = environments[index]
-            if (env.users > 0) {
+            if (env.users.size > 0) {
                 error.onNext("Can't delete because the environment has users in it")
                 return
             }
-            if (env.devices > 0) {
+            if (env.devices.size > 0) {
                 error.onNext("Can't delete because the environment has devices in it")
                 return
             }
@@ -85,8 +85,8 @@ class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
         val environment = environments[row]
         return when(column) {
             0 -> environment.name
-            1 -> environment.users
-            else -> environment.devices
+            1 -> environment.users.size
+            else -> environment.devices.size
         }
     }
 

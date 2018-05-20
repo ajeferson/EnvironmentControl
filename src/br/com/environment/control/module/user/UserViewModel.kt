@@ -1,6 +1,5 @@
 package br.com.environment.control.module.user
 
-import br.com.environment.control.extension.readIfExists
 import br.com.environment.control.extension.takeIfExists
 import br.com.environment.control.extension.write
 import br.com.environment.control.model.Environment
@@ -26,7 +25,6 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         setupSpaces()
         createUser()
         fetchEnvironments(true)
-//        pollEnvironments()
     }
 
     private fun createUser() {
@@ -61,8 +59,9 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
             val template = Environment(envId)
             val entry = space.takeIfExists(template) as Environment
             val update = Environment(entry.id)
-            update.users = entry.users + 1
-            update.devices = entry.devices
+            update.users = entry.users.map { it }
+            update.users.add(user.id)
+            update.devices = entry.devices.map { it }
             space.write(update)
         } catch(e: Exception) {
             error.onNext("Could not enter environment")
@@ -87,8 +86,9 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
             val template = Environment(envId)
             val entry = space.takeIfExists(template) as Environment
             val update = Environment(entry.id)
-            update.users = entry.users - 1
-            update.devices = entry.devices
+            update.users = entry.users.map { it }
+            update.removeUser(user)
+            update.devices = entry.devices.map { it }
             space.write(update)
         } catch(e: Exception) {
             error.onNext("Could not leave environment")
@@ -97,6 +97,14 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         status.onNext(UserStatus.OUTSIDE)
         reload.onNext(Unit)
         title.onNext(user.name)
+    }
+
+    fun fetchUsers() {
+        try {
+            val template = User()
+            template.environmentId = user.environmentId
+        } catch(e: Exception) {
+        }
     }
 
     /**
@@ -124,8 +132,8 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         val environment = environments[row]
         return when(column) {
             0 -> environment.name
-            1 -> environment.users
-            else -> environment.devices
+            1 -> environment.users.size
+            else -> environment.devices.size
         }
     }
 
