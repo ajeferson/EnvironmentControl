@@ -25,6 +25,7 @@ class UserView : JFrame("User"), KeyListener {
     private val tableModel: TableModel
     private val enterBtn: JButton
     private val leaveBtn: JButton
+    private val createDeviceBtn: JButton
     private val chatTextField: JTextField
     private val sendBtn: JButton
 
@@ -40,15 +41,18 @@ class UserView : JFrame("User"), KeyListener {
          * */
         enterBtn = JButton("Enter Environment")
         leaveBtn = JButton("Leave Environment")
+        createDeviceBtn = JButton("Create Device")
 
         enterBtn.addActionListener { didTouchEnterBtn() }
         leaveBtn.addActionListener { didTouchLeaveBtn() }
+        createDeviceBtn.addActionListener { didTouchCreateDeviceBtn() }
 
 
         val bottomPanel = JPanel()
-        bottomPanel.layout = GridLayout(1, 2)
+        bottomPanel.layout = GridLayout(2, 2)
         bottomPanel.add(enterBtn)
         bottomPanel.add(leaveBtn)
+        bottomPanel.add(createDeviceBtn)
 
         container.add(bottomPanel, BorderLayout.SOUTH)
 
@@ -159,6 +163,10 @@ class UserView : JFrame("User"), KeyListener {
         viewModel.leaveEnvironment()
     }
 
+    private fun didTouchCreateDeviceBtn() {
+        viewModel.createDevice()
+    }
+
     private fun didTouchSendBtn() {
         sendChatMessage()
     }
@@ -176,6 +184,7 @@ class UserView : JFrame("User"), KeyListener {
         enterBtn.isEnabled = status.isOutside
         leaveBtn.isEnabled = status.isInside
         sendBtn.isEnabled = status.isInside
+        createDeviceBtn.isEnabled = status.isInside
         chatTextField.isEnabled = status.isInside
         chatTextField.clear()
     }

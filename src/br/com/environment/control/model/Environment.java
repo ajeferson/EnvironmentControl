@@ -35,4 +35,8 @@ public class Environment implements Entry {
         users.remove(index);
     }
 
+    public void addDevice(Device device) {
+        devices.add(device.id);
+    }
+
 }

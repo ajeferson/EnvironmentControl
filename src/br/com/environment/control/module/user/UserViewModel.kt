@@ -3,6 +3,7 @@ package br.com.environment.control.module.user
 import br.com.environment.control.extension.readIfExists
 import br.com.environment.control.extension.takeIfExists
 import br.com.environment.control.extension.write
+import br.com.environment.control.model.Device
 import br.com.environment.control.model.Environment
 import br.com.environment.control.model.Message
 import br.com.environment.control.model.User
@@ -198,6 +199,34 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
                     .sortedBy { it.id }
             reload.onNext(Unit)
         } catch(e: Exception) {
+        }
+    }
+
+    fun createDevice() {
+        try {
+            fetchOrCreateMeta()
+            val devId = meta.deviceId + 1
+
+            // Write the device
+            val device = Device(devId)
+            device.environmentId = user.environmentId
+            space.write(device)
+
+            // Update environment
+            val templateEnv = Environment(user.environmentId)
+            val entry = space.takeIfExists(templateEnv) ?: return
+            val env = entry as? Environment ?: return
+            val update = Environment(env.id)
+            update.users = env.users.map { it }
+            update.devices = env.devices.map { it }
+            update.addDevice(device)
+            space.write(update)
+
+
+            updateMeta(devId = devId)
+            messages.onNext("${user.name} created ${device.name}")
+        } catch (e: Exception) {
+            error.onNext("Could not create device")
         }
     }
 
