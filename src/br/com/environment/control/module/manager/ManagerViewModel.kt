@@ -14,6 +14,7 @@ class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
     private val columns = arrayOf("Environment", "Users", "Devices")
 
     val selectedEnvUsers: PublishSubject<Int> = PublishSubject.create()
+    val selectedEnvDevices: PublishSubject<Int> = PublishSubject.create()
 
     override fun setup() {
         setupSpaces()
@@ -83,6 +84,18 @@ class ManagerViewModel: ViewModel(), TableDataSource, TableDelegate {
             return
         }
         selectedEnvUsers.onNext(environments[index].id)
+    }
+
+    fun showDevicesOfEnvironment(index: Int) {
+        fetchEnvironments(false)
+        if(index < 0 || index >= environments.size) {
+            return
+        }
+        if(environments[index].devices.isEmpty()) {
+            error.onNext("There are no devices in this environment")
+            return
+        }
+        selectedEnvDevices.onNext(environments[index].id)
     }
 
     fun refresh() {

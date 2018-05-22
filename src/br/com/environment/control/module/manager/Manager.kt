@@ -1,6 +1,7 @@
 package br.com.environment.control.module.manager
 
 import br.com.environment.control.extension.coolAppend
+import br.com.environment.control.module.deviceList.DeviceList
 import br.com.environment.control.module.userList.UserList
 import br.com.environment.control.view.TableModel
 import io.reactivex.disposables.CompositeDisposable
@@ -42,6 +43,7 @@ class Manager : JFrame("Manager") {
         removeBtn.addActionListener { didTouchRemoveBtn() }
         showUsersBtn.addActionListener { didTouchShowUsersBtn() }
         refreshBtn.addActionListener { didTouchRefreshBtn() }
+        showDevicesBtn.addActionListener { didTouchShowDevicesBtn() }
 
 
         val bottomPanel = JPanel()
@@ -130,6 +132,13 @@ class Manager : JFrame("Manager") {
                         }
         )
 
+        disposables.add(
+                viewModel.selectedEnvDevices
+                        .subscribe {
+                            DeviceList(viewModel.space, it)
+                        }
+        )
+
     }
 
     private fun didTouchCreateBtn() {
@@ -146,6 +155,10 @@ class Manager : JFrame("Manager") {
 
     private fun didTouchRefreshBtn() {
         viewModel.refresh()
+    }
+
+    private fun didTouchShowDevicesBtn() {
+        viewModel.showDevicesOfEnvironment(table.selectedRow)
     }
 
     private fun presentError(message: String) {
