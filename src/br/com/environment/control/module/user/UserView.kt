@@ -24,6 +24,8 @@ class UserView : JFrame("User"), KeyListener {
     private var logArea: JTextArea
     private var table: JTable
     private val tableModel: TableModel
+    private val createEnvBtn: JButton
+    private val removeEnvBtn: JButton
     private val enterBtn: JButton
     private val leaveBtn: JButton
     private val createDeviceBtn: JButton
@@ -42,12 +44,16 @@ class UserView : JFrame("User"), KeyListener {
         /**
          * Buttons
          * */
+        createEnvBtn = JButton("Create Environment")
+        removeEnvBtn = JButton("Remove Environment")
         enterBtn = JButton("Enter Environment")
         leaveBtn = JButton("Leave Environment")
         createDeviceBtn = JButton("Create Device")
         refreshButton = JButton("Refresh List")
         showDevicesBnt = JButton("Show Devices")
 
+        createEnvBtn.addActionListener { didTouchCreateEnvBtn() }
+        removeEnvBtn.addActionListener { didTouchRemoveEnvBtn() }
         enterBtn.addActionListener { didTouchEnterBtn() }
         leaveBtn.addActionListener { didTouchLeaveBtn() }
         createDeviceBtn.addActionListener { didTouchCreateDeviceBtn() }
@@ -55,12 +61,14 @@ class UserView : JFrame("User"), KeyListener {
         refreshButton.addActionListener { didTouchRefreshListBtn() }
 
         val bottomPanel = JPanel()
-        bottomPanel.layout = GridLayout(3, 2)
+        bottomPanel.layout = GridLayout(4, 2)
+        bottomPanel.add(createEnvBtn)
+        bottomPanel.add(removeEnvBtn)
         bottomPanel.add(enterBtn)
         bottomPanel.add(leaveBtn)
         bottomPanel.add(createDeviceBtn)
-        bottomPanel.add(refreshButton)
         bottomPanel.add(showDevicesBnt)
+        bottomPanel.add(refreshButton)
 
         container.add(bottomPanel, BorderLayout.SOUTH)
 
@@ -168,6 +176,14 @@ class UserView : JFrame("User"), KeyListener {
                         }
         )
 
+    }
+
+    private fun didTouchCreateEnvBtn() {
+        viewModel.createEnvironment()
+    }
+
+    private fun didTouchRemoveEnvBtn() {
+        viewModel.removeEnvironment(table.selectedRow)
     }
 
     private fun didTouchEnterBtn() {

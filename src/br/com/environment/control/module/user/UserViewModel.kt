@@ -35,6 +35,58 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         fetchEnvironments(true)
     }
 
+    fun createEnvironment() {
+        try {
+            fetchEnvironments(false)
+            fetchOrCreateMeta()
+
+            val id = meta.environmentId + 1
+            val env = Environment(id)
+            env.users = listOf()
+            env.devices = listOf()
+            space.write(env)
+
+            updateMeta(id)
+
+            environments.add(env)
+            environments.sortBy { it.id }
+            reload.onNext(Unit)
+
+            messages.onNext("Created ${env.name}")
+        } catch (e: Exception) {
+        }
+    }
+
+    fun removeEnvironment(index: Int) {
+        if(index < 0 || index >= environments.size) {
+            return
+        }
+        try {
+            fetchEnvironments(false)
+            val env = environments[index]
+            if (env.users.size > 0) {
+                error.onNext("Can't delete because the environment has users in it")
+                return
+            }
+            if (env.devices.size > 0) {
+                error.onNext("Can't delete because the environment has devices in it")
+                return
+            }
+
+            // Update list
+            val template = Environment(env.id)
+            space.takeIfExists(template)
+
+            environments.removeAt(index)
+            reload.onNext(Unit)
+
+            messages.onNext("Removed ${env.name}")
+        } catch (e: Exception) {
+            error.onNext("Could not remove environment")
+        }
+    }
+
+
     private fun createUser() {
         try {
             messages.onNext("Subscribing new user...")
