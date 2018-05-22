@@ -27,6 +27,7 @@ class UserView : JFrame("User"), KeyListener {
     private val leaveBtn: JButton
     private val createDeviceBtn: JButton
     private val chatTextField: JTextField
+    private val refreshButton: JButton
     private val sendBtn: JButton
 
     private val viewModel = UserViewModel()
@@ -42,10 +43,12 @@ class UserView : JFrame("User"), KeyListener {
         enterBtn = JButton("Enter Environment")
         leaveBtn = JButton("Leave Environment")
         createDeviceBtn = JButton("Create Device")
+        refreshButton = JButton("Refresh List")
 
         enterBtn.addActionListener { didTouchEnterBtn() }
         leaveBtn.addActionListener { didTouchLeaveBtn() }
         createDeviceBtn.addActionListener { didTouchCreateDeviceBtn() }
+        refreshButton.addActionListener { didTouchRefreshListBtn() }
 
 
         val bottomPanel = JPanel()
@@ -53,6 +56,7 @@ class UserView : JFrame("User"), KeyListener {
         bottomPanel.add(enterBtn)
         bottomPanel.add(leaveBtn)
         bottomPanel.add(createDeviceBtn)
+        bottomPanel.add(refreshButton)
 
         container.add(bottomPanel, BorderLayout.SOUTH)
 
@@ -165,6 +169,10 @@ class UserView : JFrame("User"), KeyListener {
 
     private fun didTouchCreateDeviceBtn() {
         viewModel.createDevice()
+    }
+
+    private fun didTouchRefreshListBtn() {
+        viewModel.refresh()
     }
 
     private fun didTouchSendBtn() {

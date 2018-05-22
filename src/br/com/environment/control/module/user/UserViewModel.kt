@@ -230,6 +230,10 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         }
     }
 
+    fun refresh() {
+        fetchEnvironments(true)
+    }
+
     /**
      * Table DataSource
      * */
