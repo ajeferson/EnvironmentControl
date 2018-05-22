@@ -232,9 +232,12 @@ class UserView : JFrame("User"), KeyListener {
     }
 
     private fun updateView(status: UserViewModel.UserStatus) {
+        createEnvBtn.isEnabled = status.isOutside
+        leaveBtn.isEnabled = status.isOutside
         enterBtn.isEnabled = status.isOutside
         leaveBtn.isEnabled = status.isInside
         sendBtn.isEnabled = status.isInside
+        refreshButton.isEnabled = status.isOutside
         createDeviceBtn.isEnabled = status.isInside
         chatTextField.isEnabled = status.isInside
         chatTextField.clear()
