@@ -1,14 +1,13 @@
 package br.com.environment.control.module.deviceList
 
+import br.com.environment.control.model.Device
 import br.com.environment.control.view.TableModel
 import io.reactivex.disposables.CompositeDisposable
 import net.jini.space.JavaSpace
+import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Dimension
-import javax.swing.JFrame
-import javax.swing.JScrollPane
-import javax.swing.JTable
-import javax.swing.ListSelectionModel
+import javax.swing.*
 
 class DeviceList(space: JavaSpace, envId: Int): JFrame("Devices") {
 
@@ -55,9 +54,25 @@ class DeviceList(space: JavaSpace, envId: Int): JFrame("Devices") {
         container.repaint()
         requestFocus()
 
+        val moveBtn = JButton("Move Device")
+        moveBtn.addActionListener { didTouchMoveDeviceBtn() }
+        container.add(moveBtn, BorderLayout.SOUTH)
+
+
         subscribe()
         viewModel.setup()
 
+    }
+
+    private fun didTouchMoveDeviceBtn() {
+        viewModel.touchedMoveDevice(table.selectedRow)
+    }
+
+    private fun showMovePane(devices: Array<Int>) {
+        JOptionPane.showInputDialog(null,
+                "Choose an environment",
+                "Move device", JOptionPane.PLAIN_MESSAGE,
+                null, devices.map { "env$it" }.toTypedArray(), "")
     }
 
     private fun subscribe() {
@@ -65,6 +80,12 @@ class DeviceList(space: JavaSpace, envId: Int): JFrame("Devices") {
                 viewModel.reload
                         .subscribe {
                             tableModel.reloadData()
+                        }
+        )
+        disposables.add(
+                viewModel.envs
+                        .subscribe {
+                            showMovePane(it)
                         }
         )
     }
