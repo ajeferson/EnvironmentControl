@@ -246,6 +246,10 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
         selectedDevice.onNext(environments[index].id)
     }
 
+    fun showDevices() {
+        selectedDevice.onNext(user.environmentId)
+    }
+
     /**
      * Table DataSource
      * */

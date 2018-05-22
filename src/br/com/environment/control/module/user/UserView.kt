@@ -189,6 +189,8 @@ class UserView : JFrame("User"), KeyListener {
     private fun didTouchShowDevicesBtn() {
         if(viewModel.status.value == UserViewModel.UserStatus.OUTSIDE) {
             viewModel.showDevices(table.selectedRow)
+        } else {
+            viewModel.showDevices()
         }
     }
 
