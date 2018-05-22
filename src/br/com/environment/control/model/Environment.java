@@ -39,4 +39,14 @@ public class Environment implements Entry {
         devices.add(device.id);
     }
 
+    public void removeDevice(Device device) {
+        int index = -1;
+        for (int i = 0; i < devices.size() && index < 0; i++) {
+            if(devices.get(i).equals(device.id)) {
+                index = i;
+            }
+        }
+        devices.remove(index);
+    }
+
 }

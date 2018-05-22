@@ -1,6 +1,8 @@
 package br.com.environment.control.module.deviceList
 
 import br.com.environment.control.extension.readIfExists
+import br.com.environment.control.extension.takeIfExists
+import br.com.environment.control.extension.write
 import br.com.environment.control.model.Device
 import br.com.environment.control.model.Environment
 import br.com.environment.control.module.ViewModel
@@ -50,6 +52,37 @@ class DeviceListViewModel(space: JavaSpace, private val envId: Int): ViewModel()
                     .toTypedArray()
             envs.onNext(list)
         } catch(e: Exception) {
+        }
+    }
+
+    fun moveDevice(index: Int, id: Int) {
+        if(index < 0) {
+            return
+        }
+        try {
+            val devId = devices[index].id
+
+            // Remove device from environment
+            var template = Environment(envId)
+            var env = space.takeIfExists(template) as? Environment ?: return
+            var update = Environment(envId)
+            update.users = env.users.map { it }
+            update.devices = env.devices.map { it }
+            update.removeDevice(Device(devId))
+            space.write(update)
+
+            // Insert into new environment
+            template = Environment(id)
+            env = space.takeIfExists(template) as? Environment ?: return
+            update = Environment(id)
+            update.users = env.users.map { it }
+            update.devices = env.devices.map { it }
+            update.addDevice(Device((devId)))
+            space.write(update)
+
+            setup()
+        } catch(e: Exception) {
+            error.onNext("Could not move device")
         }
     }
 

@@ -69,10 +69,13 @@ class DeviceList(space: JavaSpace, envId: Int): JFrame("Devices") {
     }
 
     private fun showMovePane(devices: Array<Int>) {
-        JOptionPane.showInputDialog(null,
+        val index = table.selectedRow
+        val option = JOptionPane.showInputDialog(null,
                 "Choose an environment",
                 "Move device", JOptionPane.PLAIN_MESSAGE,
-                null, devices.map { "env$it" }.toTypedArray(), "")
+                null, devices.map { "env$it" }.toTypedArray(), "") as? String ?: return
+        val id = option.substring(3).toInt()
+        viewModel.moveDevice(index, id)
     }
 
     private fun subscribe() {
@@ -88,6 +91,16 @@ class DeviceList(space: JavaSpace, envId: Int): JFrame("Devices") {
                             showMovePane(it)
                         }
         )
+        disposables.add(
+                viewModel.error
+                        .subscribe {
+                            presentError(it)
+                        }
+        )
+    }
+
+    private fun presentError(message: String) {
+        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE)
     }
 
 }
