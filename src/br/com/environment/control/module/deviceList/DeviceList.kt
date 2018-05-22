@@ -1,6 +1,5 @@
 package br.com.environment.control.module.deviceList
 
-import br.com.environment.control.model.Device
 import br.com.environment.control.view.TableModel
 import io.reactivex.disposables.CompositeDisposable
 import net.jini.space.JavaSpace

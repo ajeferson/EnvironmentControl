@@ -2,6 +2,7 @@ package br.com.environment.control.module.user
 
 import br.com.environment.control.extension.clear
 import br.com.environment.control.extension.coolAppend
+import br.com.environment.control.module.deviceList.DeviceList
 import br.com.environment.control.view.TableModel
 import io.reactivex.disposables.CompositeDisposable
 import java.awt.BorderLayout
@@ -29,6 +30,7 @@ class UserView : JFrame("User"), KeyListener {
     private val chatTextField: JTextField
     private val refreshButton: JButton
     private val sendBtn: JButton
+    private val showDevicesBnt: JButton
 
     private val viewModel = UserViewModel()
 
@@ -44,19 +46,21 @@ class UserView : JFrame("User"), KeyListener {
         leaveBtn = JButton("Leave Environment")
         createDeviceBtn = JButton("Create Device")
         refreshButton = JButton("Refresh List")
+        showDevicesBnt = JButton("Show Devices")
 
         enterBtn.addActionListener { didTouchEnterBtn() }
         leaveBtn.addActionListener { didTouchLeaveBtn() }
         createDeviceBtn.addActionListener { didTouchCreateDeviceBtn() }
         refreshButton.addActionListener { didTouchRefreshListBtn() }
-
+        showDevicesBnt.addActionListener { didTouchShowDevicesBtn() }
 
         val bottomPanel = JPanel()
-        bottomPanel.layout = GridLayout(2, 2)
+        bottomPanel.layout = GridLayout(3, 2)
         bottomPanel.add(enterBtn)
         bottomPanel.add(leaveBtn)
         bottomPanel.add(createDeviceBtn)
         bottomPanel.add(refreshButton)
+        bottomPanel.add(showDevicesBnt)
 
         container.add(bottomPanel, BorderLayout.SOUTH)
 
@@ -157,6 +161,13 @@ class UserView : JFrame("User"), KeyListener {
                         }
         )
 
+        disposables.add(
+                viewModel.selectedDevice
+                        .subscribe {
+                            DeviceList(viewModel.space, it)
+                        }
+        )
+
     }
 
     private fun didTouchEnterBtn() {
@@ -173,6 +184,12 @@ class UserView : JFrame("User"), KeyListener {
 
     private fun didTouchRefreshListBtn() {
         viewModel.refresh()
+    }
+
+    private fun didTouchShowDevicesBtn() {
+        if(viewModel.status.value == UserViewModel.UserStatus.OUTSIDE) {
+            viewModel.showDevices(table.selectedRow)
+        }
     }
 
     private fun didTouchSendBtn() {

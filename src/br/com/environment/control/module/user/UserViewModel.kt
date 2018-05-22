@@ -24,6 +24,7 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
 
     var title: PublishSubject<String> = PublishSubject.create()
     var status: BehaviorSubject<UserStatus> = BehaviorSubject.createDefault(UserStatus.OUTSIDE)
+    val selectedDevice: PublishSubject<Int> = PublishSubject.create()
 
     var shouldPollMessages = true
     var shouldPollUsers = true
@@ -222,7 +223,6 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
             update.addDevice(device)
             space.write(update)
 
-
             updateMeta(devId = devId)
             messages.onNext("${user.name} created ${device.name}")
         } catch (e: Exception) {
@@ -232,6 +232,18 @@ class UserViewModel: ViewModel(), TableDataSource, TableDelegate {
 
     fun refresh() {
         fetchEnvironments(true)
+    }
+
+    fun showDevices(index: Int) {
+        if(index < 0) {
+            return
+        }
+        if(environments[index].devices.size == 0) {
+            error.onNext("There are no devices in this environment")
+            return
+        }
+        fetchEnvironments(false)
+        selectedDevice.onNext(environments[index].id)
     }
 
     /**
