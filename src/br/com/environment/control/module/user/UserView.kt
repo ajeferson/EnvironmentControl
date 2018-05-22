@@ -33,6 +33,7 @@ class UserView : JFrame("User"), KeyListener {
     private val refreshButton: JButton
     private val sendBtn: JButton
     private val showDevicesBnt: JButton
+    private val aboutBtn: JButton
 
     private val viewModel = UserViewModel()
 
@@ -51,6 +52,7 @@ class UserView : JFrame("User"), KeyListener {
         createDeviceBtn = JButton("Create Device")
         refreshButton = JButton("Refresh List")
         showDevicesBnt = JButton("Show Devices")
+        aboutBtn = JButton("About")
 
         createEnvBtn.addActionListener { didTouchCreateEnvBtn() }
         removeEnvBtn.addActionListener { didTouchRemoveEnvBtn() }
@@ -59,6 +61,7 @@ class UserView : JFrame("User"), KeyListener {
         createDeviceBtn.addActionListener { didTouchCreateDeviceBtn() }
         showDevicesBnt.addActionListener { didTouchShowDevicesBtn() }
         refreshButton.addActionListener { didTouchRefreshListBtn() }
+        aboutBtn.addActionListener { didTouchAboutBtn() }
 
         val bottomPanel = JPanel()
         bottomPanel.layout = GridLayout(4, 2)
@@ -69,6 +72,7 @@ class UserView : JFrame("User"), KeyListener {
         bottomPanel.add(createDeviceBtn)
         bottomPanel.add(showDevicesBnt)
         bottomPanel.add(refreshButton)
+        bottomPanel.add(aboutBtn)
 
         container.add(bottomPanel, BorderLayout.SOUTH)
 
@@ -208,6 +212,10 @@ class UserView : JFrame("User"), KeyListener {
         } else {
             viewModel.showDevices()
         }
+    }
+
+    private fun didTouchAboutBtn() {
+        JOptionPane.showMessageDialog(null, "By Alan Jeferson.\nalan.jeferson11@gmail.com")
     }
 
     private fun didTouchSendBtn() {
