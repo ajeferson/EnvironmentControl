@@ -51,8 +51,8 @@ class UserView : JFrame("User"), KeyListener {
         enterBtn.addActionListener { didTouchEnterBtn() }
         leaveBtn.addActionListener { didTouchLeaveBtn() }
         createDeviceBtn.addActionListener { didTouchCreateDeviceBtn() }
-        refreshButton.addActionListener { didTouchRefreshListBtn() }
         showDevicesBnt.addActionListener { didTouchShowDevicesBtn() }
+        refreshButton.addActionListener { didTouchRefreshListBtn() }
 
         val bottomPanel = JPanel()
         bottomPanel.layout = GridLayout(3, 2)
